@@ -156,6 +156,7 @@ curl -s "https://$(az functionapp show -g $RG -n $FUNCAPP --query defaultHostNam
 | `az ad signed-in-user show` 실패 (게스트/개인 계정) | `ME=$(az ad user show --id "$(az account show --query user.name -o tsv)" --query id -o tsv)` |
 | `/secret/reference` 가 `unresolved` | 관리 ID·역할 부여 확인 → `az webapp restart` → 2분 대기. 포털 환경 변수에서 참조 상태 확인 |
 | `/secret/sdk` 가 `Forbidden` | 3단계 역할 부여 확인, 전파 대기 (최대 약 5분) |
+| `Public network access is disabled ... ForbiddenByConnection` (비밀 저장·읽기) | 역할 문제가 아니라 조직 정책이 Key Vault 의 공용 네트워크 접근을 꺼 둔 경우입니다. 정책이 없는 **개인 실습용 구독**에서 진행하세요 |
 | 키 볼트 이름 충돌 / 삭제된 이름 | `az keyvault purge --name $KV` 또는 새 접미사 |
 
 > ⚠️ 실제 운영에서는 Key Vault 의 **삭제 방지(purge protection)** 와 네트워크 제한(Private Endpoint)도 켜세요. 이 랩은 정리를 쉽게 하려고 켜지 않았습니다.

@@ -30,10 +30,10 @@ KV_ID=$(az keyvault show -g $RG -n $KV --query id -o tsv)
 PRINCIPAL_ID=$(az webapp identity show -g $RG -n $WEBAPP --query principalId -o tsv)
 
 # Entra ID 에서의 나
-az ad signed-in-user show --query "{이름:displayName, 계정:userPrincipalName, 객체ID:id}" -o table
+az ad signed-in-user show --query '{"이름":displayName, "계정":userPrincipalName, "객체ID":id}' -o table
 
 # 웹앱의 관리 ID 도 Entra ID 에 "서비스 주체"로 존재합니다
-az ad sp show --id $PRINCIPAL_ID --query "{이름:displayName, 유형:servicePrincipalType, 객체ID:id}" -o table
+az ad sp show --id $PRINCIPAL_ID --query '{"이름":displayName, "유형":servicePrincipalType, "객체ID":id}' -o table
 
 # 이 관리 ID가 가진 권한 (실습 3에서 부여한 것)
 az role assignment list --assignee $PRINCIPAL_ID --all -o table
@@ -118,8 +118,12 @@ cat > /tmp/role.json <<EOF
 EOF
 az role definition create --role-definition @/tmp/role.json -o none
 
-az role assignment create --assignee-object-id $SP_OBJECT_ID --assignee-principal-type ServicePrincipal \
-  --role "Web App Restarter ($LAB_SUFFIX)" --scope $RG_ID -o none
+# 새 역할 정의가 전파되기 전에는 "Role ... doesn't exist" 가 나므로 될 때까지 재시도합니다
+for i in $(seq 1 10); do
+  az role assignment create --assignee-object-id $SP_OBJECT_ID --assignee-principal-type ServicePrincipal \
+    --role "Web App Restarter ($LAB_SUFFIX)" --scope $RG_ID -o none 2>/dev/null && { echo "✅ 역할 할당됨"; break; }
+  echo "⏳ 역할 정의 전파 대기 ($i/10)..."; sleep 15
+done
 
 # 1~3분 후
 as_sp az webapp restart -g $RG -n $WEBAPP      # ✅

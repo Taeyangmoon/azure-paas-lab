@@ -118,8 +118,12 @@ cat > /tmp/role.json <<EOF
 EOF
 az role definition create --role-definition @/tmp/role.json -o none
 
-az role assignment create --assignee-object-id $SP_OBJECT_ID --assignee-principal-type ServicePrincipal \
-  --role "Web App Restarter ($LAB_SUFFIX)" --scope $RG_ID -o none
+# Until the new role definition propagates you get "Role ... doesn't exist", so retry until it works
+for i in $(seq 1 10); do
+  az role assignment create --assignee-object-id $SP_OBJECT_ID --assignee-principal-type ServicePrincipal \
+    --role "Web App Restarter ($LAB_SUFFIX)" --scope $RG_ID -o none 2>/dev/null && { echo "✅ Role assigned"; break; }
+  echo "⏳ Waiting for role definition to propagate ($i/10)..."; sleep 15
+done
 
 # after 1-3 minutes
 as_sp az webapp restart -g $RG -n $WEBAPP      # ✅

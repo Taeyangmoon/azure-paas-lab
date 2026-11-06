@@ -105,6 +105,7 @@ curl "https://$HOST/api/hello?name=Azure" -H "x-functions-key: $KEY"
 | `func: command not found` | Codespace 를 재빌드(`Rebuild Container`)하거나 `.devcontainer` 를 확인 |
 | 배포 직후 401/404 | 1~2분 기다린 뒤 다시 시도. `func azure functionapp publish` 출력에 함수 목록이 있는지 확인 |
 | `functionKeys.default` 가 비어 있음 | 함수 호스트가 아직 시작 전입니다. 1~2분 후 재시도하거나 포털 *앱 키* 에서 확인 |
+| `storage account ... has networking restrictions` (함수 앱 생성) 또는 `Key based authentication is not permitted` (배포) | 조직 정책이 스토리지의 공용 네트워크 접근/키 인증을 강제로 꺼 둔 구독입니다(예: 회사 관리형 구독). 이 실습은 해당 정책이 없는 **개인 실습용 구독**에서 진행하세요 |
 | 스토리지 계정 이름 중복 | `rm .lab-env && source scripts/env.sh` 로 새 접미사 생성 (기존 리소스 정리 후) |
 
 ➡️ 다음: [실습 3. Key Vault + 관리 ID](../03-key-vault/README.md)

@@ -83,7 +83,7 @@ az storage account create -g $POLICY_RG -n stpol$LAB_SUFFIX -l koreacentral --sk
 ```bash
 az policy state trigger-scan -g $POLICY_RG --no-wait
 az policy state list -g $POLICY_RG \
-  --query "[].{리소스:resourceId, 정책:policyAssignmentName, 준수:complianceState}" -o table
+  --query '[].{"리소스":resourceId, "정책":policyAssignmentName, "준수":complianceState}' -o table
 ```
 
 평가에 몇 분 걸립니다. 포털 → **Policy → 규정 준수**에서 그래프로도 볼 수 있습니다.

@@ -105,6 +105,7 @@ curl "https://$HOST/api/hello?name=Azure" -H "x-functions-key: $KEY"
 | `func: command not found` | Rebuild the Codespace (`Rebuild Container`) and check `.devcontainer` |
 | 401/404 right after deploy | Wait 1-2 minutes and retry; confirm the publish output listed the functions |
 | `functionKeys.default` is empty | The host hasn't started yet. Retry after 1-2 minutes or read it from *App keys* in the portal |
+| `storage account ... has networking restrictions` (creating the function app) or `Key based authentication is not permitted` (deploying) | An organization policy forces public network access / key authentication off on storage accounts (e.g. corporate-managed subscriptions). Run this lab in a **personal lab subscription** without such policies |
 | Storage account name already taken | `rm .lab-env && source scripts/env.sh` for a new suffix (after cleaning up old resources) |
 
 ➡️ Next: [Lab 3. Key Vault + Managed Identity](../03-key-vault/README.en.md)

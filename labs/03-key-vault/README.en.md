@@ -156,6 +156,7 @@ curl -s "https://$(az functionapp show -g $RG -n $FUNCAPP --query defaultHostNam
 | `az ad signed-in-user show` fails (guest/personal account) | `ME=$(az ad user show --id "$(az account show --query user.name -o tsv)" --query id -o tsv)` |
 | `/secret/reference` says `unresolved` | Check identity and role (step 3) → `az webapp restart` → wait 2 minutes. Check the reference status under Environment variables in the portal |
 | `/secret/sdk` says `Forbidden` | Verify the role from step 3; wait for propagation (up to ~5 min) |
+| `Public network access is disabled ... ForbiddenByConnection` (setting/reading secrets) | Not a role problem: an organization policy turns off public network access on Key Vaults. Run this lab in a **personal lab subscription** without such policies |
 | Key Vault name conflict / deleted name | `az keyvault purge --name $KV` or use a new suffix |
 
 > ⚠️ In production also enable Key Vault **purge protection** and network restrictions (Private Endpoint). This lab leaves them off to keep cleanup simple.
