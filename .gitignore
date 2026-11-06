@@ -1,0 +1,8 @@
+.lab-env
+.azure-sp/
+*.zip
+__pycache__/
+*.pyc
+.venv/
+.python_packages/
+.DS_Store

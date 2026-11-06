@@ -1,0 +1,4 @@
+flask>=3.0,<4
+gunicorn>=22.0
+azure-identity>=1.17
+azure-keyvault-secrets>=4.8

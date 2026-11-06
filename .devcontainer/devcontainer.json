@@ -1,0 +1,23 @@
+{
+  "name": "Azure PaaS & Security Lab",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "features": {
+    "ghcr.io/devcontainers/features/azure-cli:1": {},
+    "ghcr.io/jlaundry/devcontainer-features/azure-functions-core-tools:1": {}
+  },
+  "postCreateCommand": "pip install --user -r src/webapp/requirements.txt -r src/function/requirements.txt",
+  "forwardPorts": [8000, 7071],
+  "portsAttributes": {
+    "8000": { "label": "Web App (Flask)" },
+    "7071": { "label": "Azure Functions" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-azuretools.vscode-azurefunctions",
+        "ms-azuretools.vscode-azureappservice"
+      ]
+    }
+  }
+}
