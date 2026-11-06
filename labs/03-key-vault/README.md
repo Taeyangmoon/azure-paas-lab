@@ -1,9 +1,9 @@
-# 실습 8. Azure Key Vault + 관리 ID(Managed Identity)
+# 실습 3. Azure Key Vault + 관리 ID(Managed Identity)
 
-[🇺🇸 English](README.en.md) | 🇰🇷 한국어 | [← 처음으로](../../README.md) | [← 실습 7](../07-functions/README.md) | [다음: 실습 9 →](../09-rbac-entra/README.md)
+[🇺🇸 English](README.en.md) | 🇰🇷 한국어 | [← 처음으로](../../README.md) | [← 실습 2](../02-functions/README.md) | [다음: 실습 4 →](../04-rbac-entra/README.md)
 
 ⏱ 25분 · 💸 센트 단위 · 🎯 **"자격 증명을 코드에 넣지 않는다"** 원칙을 직접 체득합니다.
-📌 사전 조건: [실습 6](../06-app-service/README.md) 완료 (웹앱 필요)
+📌 사전 조건: [실습 1](../01-app-service/README.md) 완료 (웹앱 필요)
 
 ## 개념 먼저
 
@@ -123,14 +123,14 @@ sleep 3; curl -s localhost:8000/secret/sdk; kill %1; cd ../..
 az role assignment delete --assignee $PRINCIPAL_ID --role "Key Vault Secrets User" --scope $KV_ID
 ```
 
-몇 분 뒤 `curl -s $URL/secret/sdk` 가 `Forbidden` (403) 오류를 반환합니다. **권한은 Key Vault가 매 요청마다 확인**하므로 코드를 건드리지 않고 접근을 즉시 회수할 수 있습니다. 실습 9에서 다시 부여하니 확인했다면 복구하세요.
+몇 분 뒤 `curl -s $URL/secret/sdk` 가 `Forbidden` (403) 오류를 반환합니다. **권한은 Key Vault가 매 요청마다 확인**하므로 코드를 건드리지 않고 접근을 즉시 회수할 수 있습니다. 실습 4에서 다시 부여하니 확인했다면 복구하세요.
 
 ```bash
 az role assignment create --assignee-object-id $PRINCIPAL_ID --assignee-principal-type ServicePrincipal \
   --role "Key Vault Secrets User" --scope $KV_ID -o none
 ```
 
-## 7. (선택) 함수 앱에도 똑같이
+## 7. (선택) 함수 앱에도 똑같이 — 실습 2를 완료한 경우
 
 ```bash
 FUNC_PID=$(az functionapp identity assign -g $RG -n $FUNCAPP --query principalId -o tsv)
@@ -160,4 +160,4 @@ curl -s "https://$(az functionapp show -g $RG -n $FUNCAPP --query defaultHostNam
 
 > ⚠️ 실제 운영에서는 Key Vault 의 **삭제 방지(purge protection)** 와 네트워크 제한(Private Endpoint)도 켜세요. 이 랩은 정리를 쉽게 하려고 켜지 않았습니다.
 
-➡️ 다음: [실습 9. RBAC & Microsoft Entra ID](../09-rbac-entra/README.md)
+➡️ 다음: [실습 4. RBAC & Microsoft Entra ID](../04-rbac-entra/README.md)

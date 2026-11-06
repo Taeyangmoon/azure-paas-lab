@@ -19,14 +19,14 @@ fi
 export LOCATION="${LOCATION:-koreacentral}"     # 지역 / region
 export WEBAPP_SKU="${WEBAPP_SKU:-F1}"           # F1 = 무료 / free. 할당량 오류 시 / on quota error: B1
 
-export RG="rg-paaslab-$LAB_SUFFIX"              # 실습 6~9 / labs 6-9
+export RG="rg-paaslab-$LAB_SUFFIX"              # 실습 1~4 / labs 1-4
 export PLAN="plan-paaslab-$LAB_SUFFIX"
 export WEBAPP="app-paaslab-$LAB_SUFFIX"
 export FUNC_STORAGE="stfunc$LAB_SUFFIX"
 export FUNCAPP="func-paaslab-$LAB_SUFFIX"
 export KV="kv-paaslab-$LAB_SUFFIX"
-export SP_NAME="sp-paaslab-$LAB_SUFFIX"         # 실습 9 / lab 9
-export POLICY_RG="rg-paaslab-policy-$LAB_SUFFIX" # 실습 10 / lab 10
+export SP_NAME="sp-paaslab-$LAB_SUFFIX"         # 실습 4 / lab 4
+export POLICY_RG="rg-paaslab-policy-$LAB_SUFFIX" # 실습 5 / lab 5
 export LAB_TAG="lab=azure-paas-lab"
 
 echo "LAB_SUFFIX=$LAB_SUFFIX  LOCATION=$LOCATION  RG=$RG"

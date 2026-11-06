@@ -1,6 +1,6 @@
-# 실습 7. Azure Functions: HTTP 트리거 함수
+# 실습 2. Azure Functions: HTTP 트리거 함수
 
-[🇺🇸 English](README.en.md) | 🇰🇷 한국어 | [← 처음으로](../../README.md) | [← 실습 6](../06-app-service/README.md) | [다음: 실습 8 →](../08-key-vault/README.md)
+[🇺🇸 English](README.en.md) | 🇰🇷 한국어 | [← 처음으로](../../README.md) | [← 실습 1](../01-app-service/README.md) | [다음: 실습 3 →](../03-key-vault/README.md)
 
 ⏱ 20분 · 💸 거의 무료(호출 기반) · 🎯 **서버리스를 가장 짧은 코드로 체험합니다.**
 
@@ -10,7 +10,7 @@
 - **트리거**: 함수를 깨우는 이벤트(HTTP 요청, 타이머, 큐 메시지 …). 이 실습은 **HTTP 트리거**입니다.
 - 이 실습은 **Flex Consumption** 요금제를 사용합니다. 사용량 기반이며 새 함수 앱에 권장되는 서버리스 호스팅입니다.
 
-| | App Service (실습 6) | Functions (실습 7) |
+| | App Service (실습 1) | Functions (실습 2) |
 |---|---|---|
 | 단위 | 앱 전체 | 함수(작은 코드 조각) |
 | 실행 | 항상 켜져 있음(플랜) | 요청 시 실행 |
@@ -107,4 +107,4 @@ curl "https://$HOST/api/hello?name=Azure" -H "x-functions-key: $KEY"
 | `functionKeys.default` 가 비어 있음 | 함수 호스트가 아직 시작 전입니다. 1~2분 후 재시도하거나 포털 *앱 키* 에서 확인 |
 | 스토리지 계정 이름 중복 | `rm .lab-env && source scripts/env.sh` 로 새 접미사 생성 (기존 리소스 정리 후) |
 
-➡️ 다음: [실습 8. Key Vault + 관리 ID](../08-key-vault/README.md)
+➡️ 다음: [실습 3. Key Vault + 관리 ID](../03-key-vault/README.md)

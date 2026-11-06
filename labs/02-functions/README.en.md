@@ -1,6 +1,6 @@
-# Lab 7. Azure Functions: HTTP-triggered Function
+# Lab 2. Azure Functions: HTTP-triggered Function
 
-🇺🇸 English | [🇰🇷 한국어](README.md) | [← Home](../../README.en.md) | [← Lab 6](../06-app-service/README.en.md) | [Next: Lab 8 →](../08-key-vault/README.en.md)
+🇺🇸 English | [🇰🇷 한국어](README.md) | [← Home](../../README.en.md) | [← Lab 1](../01-app-service/README.en.md) | [Next: Lab 3 →](../03-key-vault/README.en.md)
 
 ⏱ 20 min · 💸 Nearly free (usage-based) · 🎯 **See serverless with the shortest possible code.**
 
@@ -10,7 +10,7 @@
 - **Trigger**: the event that wakes a function (HTTP request, timer, queue message…). This lab uses an **HTTP trigger**.
 - This lab uses the **Flex Consumption** plan: usage-based, and the recommended serverless hosting for new function apps.
 
-| | App Service (Lab 6) | Functions (Lab 7) |
+| | App Service (Lab 1) | Functions (Lab 2) |
 |---|---|---|
 | Unit | The whole app | A function (small piece of code) |
 | Execution | Always on (plan) | On demand |
@@ -107,4 +107,4 @@ curl "https://$HOST/api/hello?name=Azure" -H "x-functions-key: $KEY"
 | `functionKeys.default` is empty | The host hasn't started yet. Retry after 1-2 minutes or read it from *App keys* in the portal |
 | Storage account name already taken | `rm .lab-env && source scripts/env.sh` for a new suffix (after cleaning up old resources) |
 
-➡️ Next: [Lab 8. Key Vault + Managed Identity](../08-key-vault/README.en.md)
+➡️ Next: [Lab 3. Key Vault + Managed Identity](../03-key-vault/README.en.md)

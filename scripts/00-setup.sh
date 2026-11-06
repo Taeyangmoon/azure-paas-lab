@@ -25,4 +25,4 @@ for ns in Microsoft.Web Microsoft.KeyVault Microsoft.Storage Microsoft.PolicyIns
 done
 
 echo
-echo "🎉 준비 완료 / Ready. 다음 / Next: labs/06-app-service"
+echo "🎉 준비 완료 / Ready. 다음 / Next: labs/01-app-service"

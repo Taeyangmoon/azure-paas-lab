@@ -1,6 +1,6 @@
-# 실습 6. Azure App Service: 샘플 웹앱 배포
+# 실습 1. Azure App Service: 샘플 웹앱 배포
 
-[🇺🇸 English](README.en.md) | 🇰🇷 한국어 | [← 처음으로](../../README.md) | [다음: 실습 7 →](../07-functions/README.md)
+[🇺🇸 English](README.en.md) | 🇰🇷 한국어 | [← 처음으로](../../README.md) | [다음: 실습 2 →](../02-functions/README.md)
 
 ⏱ 20분 · 💸 무료(F1) · 🎯 **PaaS가 VM 대비 무엇을 대신 관리해 주는지 체감합니다.**
 
@@ -16,7 +16,7 @@ VM에 웹앱을 올리려면 OS 설치·패치, 런타임 설치, 웹서버 설�
 | 앱 코드·앱 설정·접근 제어 | 👤 내가 | 👤 내가 |
 | 스케일 아웃 | VM 복제 직접 구성 | 슬라이더/명령 한 줄 |
 
-> 공동 책임 모델: PaaS에서도 **내 코드, 데이터, ID/접근 권한**은 여전히 내 책임입니다. 이것이 이 랩의 나머지 실습(8~10)으로 이어집니다.
+> 공동 책임 모델: PaaS에서도 **내 코드, 데이터, ID/접근 권한**은 여전히 내 책임입니다. 이것이 이 랩의 나머지 실습(3~5)으로 이어집니다.
 
 ## 만들 것
 
@@ -45,7 +45,7 @@ Codespaces 하단 **포트** 탭의 `8000` 포트를 열면 앱이 보입니다.
 ## 3. 리소스 만들기
 
 ```bash
-# 리소스 그룹 (실습 6~9 공용)
+# 리소스 그룹 (실습 1~4 공용)
 az group create -n $RG -l $LOCATION --tags $LAB_TAG -o none
 
 # App Service 플랜: 앱이 실행되는 "서버 묶음"의 사양
@@ -109,4 +109,4 @@ curl -s $URL/info
 | 사이트가 `Application Error` | `az webapp log tail -g $RG -n $WEBAPP` 로 로그 확인. 시작 명령(`app:app`)과 `requirements.txt` 확인 |
 | `zip: command not found` | `sudo apt-get update && sudo apt-get install -y zip` |
 
-➡️ 다음: [실습 7. Azure Functions](../07-functions/README.md) (웹앱은 지우지 마세요. 실습 8에서 계속 씁니다)
+➡️ 다음: [실습 2. Azure Functions](../02-functions/README.md) (웹앱은 지우지 마세요. 실습 3에서 계속 씁니다)

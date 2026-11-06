@@ -1,9 +1,9 @@
-# 실습 9. Azure RBAC와 Microsoft Entra ID: 역할 할당, 최소 권한
+# 실습 4. Azure RBAC와 Microsoft Entra ID: 역할 할당, 최소 권한
 
-[🇺🇸 English](README.en.md) | 🇰🇷 한국어 | [← 처음으로](../../README.md) | [← 실습 8](../08-key-vault/README.md) | [다음: 실습 10 →](../10-policy-governance/README.md)
+[🇺🇸 English](README.en.md) | 🇰🇷 한국어 | [← 처음으로](../../README.md) | [← 실습 3](../03-key-vault/README.md) | [다음: 실습 5 →](../05-policy-governance/README.md)
 
-⏱ 25분 · 💸 무료 · 🎯 실습 8에서 쓴 권한 부여 원리를 **일반화**합니다.
-📌 사전 조건: [실습 8](../08-key-vault/README.md) 완료
+⏱ 25분 · 💸 무료 · 🎯 실습 3에서 쓴 권한 부여 원리를 **일반화**합니다.
+📌 사전 조건: [실습 3](../03-key-vault/README.md) 완료
 
 ## 개념 먼저
 
@@ -15,7 +15,7 @@
 
 | 구성 요소 | 예시 |
 |-----------|------|
-| 보안 주체 | 사용자, 그룹, 서비스 주체, **관리 ID** (실습 8의 웹앱!) |
+| 보안 주체 | 사용자, 그룹, 서비스 주체, **관리 ID** (실습 3의 웹앱!) |
 | 역할 정의 | Reader, Contributor, Owner, Key Vault Secrets User … (직접 만들 수도 있음) |
 | 범위 | 관리 그룹 ⊃ 구독 ⊃ 리소스 그룹 ⊃ 리소스 (**아래로 상속**) |
 
@@ -35,7 +35,7 @@ az ad signed-in-user show --query "{이름:displayName, 계정:userPrincipalName
 # 웹앱의 관리 ID 도 Entra ID 에 "서비스 주체"로 존재합니다
 az ad sp show --id $PRINCIPAL_ID --query "{이름:displayName, 유형:servicePrincipalType, 객체ID:id}" -o table
 
-# 이 관리 ID가 가진 권한 (실습 8에서 부여한 것)
+# 이 관리 ID가 가진 권한 (실습 3에서 부여한 것)
 az role assignment list --assignee $PRINCIPAL_ID --all -o table
 ```
 
@@ -47,7 +47,7 @@ az role definition list --name "Key Vault Secrets User" --query "[0].permissions
 ```
 
 - `actions`: **관리 평면** (리소스 생성/삭제/설정)
-- `dataActions`: **데이터 평면** (비밀 읽기, Blob 읽기 …). 실습 8에서 Owner가 비밀을 못 읽은 이유입니다.
+- `dataActions`: **데이터 평면** (비밀 읽기, Blob 읽기 …). 실습 3에서 Owner가 비밀을 못 읽은 이유입니다.
 
 ## 3. 최소 권한 실험: "읽기 전용" 사용자 만들기
 
@@ -130,7 +130,7 @@ as_sp az webapp stop -g $RG -n $WEBAPP         # ❌ 여전히 거부
 
 1. Reader 역할로 Key Vault 비밀을 읽을 수 있었나요? 왜?
 2. 역할을 **구독** 범위가 아닌 **리소스 그룹**에 준 이점은?
-3. 사람이 아닌 앱에 권한을 줄 때 비밀번호가 필요 없는 방법은? (실습 8: 관리 ID)
+3. 사람이 아닌 앱에 권한을 줄 때 비밀번호가 필요 없는 방법은? (실습 3: 관리 ID)
 
 ## 🛠 문제 해결
 
@@ -143,4 +143,4 @@ as_sp az webapp stop -g $RG -n $WEBAPP         # ❌ 여전히 거부
 
 > 🧹 서비스 주체·사용자 지정 역할은 `bash scripts/cleanup.sh` 가 삭제합니다.
 
-➡️ 다음: [실습 10. Azure Policy & 태그 거버넌스](../10-policy-governance/README.md)
+➡️ 다음: [실습 5. Azure Policy & 태그 거버넌스](../05-policy-governance/README.md)

@@ -1,9 +1,9 @@
-# Lab 9. Azure RBAC and Microsoft Entra ID: Role Assignments & Least Privilege
+# Lab 4. Azure RBAC and Microsoft Entra ID: Role Assignments & Least Privilege
 
-🇺🇸 English | [🇰🇷 한국어](README.md) | [← Home](../../README.en.md) | [← Lab 8](../08-key-vault/README.en.md) | [Next: Lab 10 →](../10-policy-governance/README.en.md)
+🇺🇸 English | [🇰🇷 한국어](README.md) | [← Home](../../README.en.md) | [← Lab 3](../03-key-vault/README.en.md) | [Next: Lab 5 →](../05-policy-governance/README.en.md)
 
-⏱ 25 min · 💸 Free · 🎯 **Generalize** the authorization mechanism you used in Lab 8.
-📌 Prerequisite: [Lab 8](../08-key-vault/README.en.md) completed
+⏱ 25 min · 💸 Free · 🎯 **Generalize** the authorization mechanism you used in Lab 3.
+📌 Prerequisite: [Lab 3](../03-key-vault/README.en.md) completed
 
 ## Concept first
 
@@ -15,7 +15,7 @@ Role assignment =  who (security principal)  +  which role (role definition)  + 
 
 | Component | Examples |
 |-----------|----------|
-| Security principal | User, group, service principal, **managed identity** (the web app from Lab 8!) |
+| Security principal | User, group, service principal, **managed identity** (the web app from Lab 3!) |
 | Role definition | Reader, Contributor, Owner, Key Vault Secrets User … (or your own custom role) |
 | Scope | Management group ⊃ subscription ⊃ resource group ⊃ resource (**inherited downward**) |
 
@@ -35,7 +35,7 @@ az ad signed-in-user show --query "{name:displayName, account:userPrincipalName,
 # The web app's managed identity also exists in Entra ID as a "service principal"
 az ad sp show --id $PRINCIPAL_ID --query "{name:displayName, type:servicePrincipalType, objectId:id}" -o table
 
-# What this managed identity may do (granted in Lab 8)
+# What this managed identity may do (granted in Lab 3)
 az role assignment list --assignee $PRINCIPAL_ID --all -o table
 ```
 
@@ -47,7 +47,7 @@ az role definition list --name "Key Vault Secrets User" --query "[0].permissions
 ```
 
 - `actions`: **management plane** (create/delete/configure resources)
-- `dataActions`: **data plane** (read secrets, read blobs …). That's why the Owner couldn't read secrets in Lab 8.
+- `dataActions`: **data plane** (read secrets, read blobs …). That's why the Owner couldn't read secrets in Lab 3.
 
 ## 3. Least-privilege experiment: a "read-only" user
 
@@ -130,7 +130,7 @@ as_sp az webapp stop -g $RG -n $WEBAPP         # ❌ still denied
 
 1. Could Reader read the Key Vault secret? Why (not)?
 2. What's the benefit of assigning at **resource group** instead of **subscription** scope?
-3. How can an app get permissions without any password? (Lab 8: managed identity)
+3. How can an app get permissions without any password? (Lab 3: managed identity)
 
 ## 🛠 Troubleshooting
 
@@ -143,4 +143,4 @@ as_sp az webapp stop -g $RG -n $WEBAPP         # ❌ still denied
 
 > 🧹 `bash scripts/cleanup.sh` removes the service principal and the custom role.
 
-➡️ Next: [Lab 10. Azure Policy & tag governance](../10-policy-governance/README.en.md)
+➡️ Next: [Lab 5. Azure Policy & tag governance](../05-policy-governance/README.en.md)

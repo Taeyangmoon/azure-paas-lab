@@ -1,6 +1,6 @@
-# Lab 6. Azure App Service: Deploy a Sample Web App
+# Lab 1. Azure App Service: Deploy a Sample Web App
 
-🇺🇸 English | [🇰🇷 한국어](README.md) | [← Home](../../README.en.md) | [Next: Lab 7 →](../07-functions/README.en.md)
+🇺🇸 English | [🇰🇷 한국어](README.md) | [← Home](../../README.en.md) | [Next: Lab 2 →](../02-functions/README.en.md)
 
 ⏱ 20 min · 💸 Free (F1) · 🎯 **Feel what PaaS manages for you compared with a VM.**
 
@@ -16,7 +16,7 @@ On a VM you install and patch the OS, install the runtime, configure the web ser
 | App code, app settings, access control | 👤 You | 👤 You |
 | Scale out | Build VM replication yourself | A slider / one command |
 
-> Shared responsibility: even on PaaS, **your code, data and identities/access** remain your responsibility. That leads into the rest of the labs (8–10).
+> Shared responsibility: even on PaaS, **your code, data and identities/access** remain your responsibility. That leads into the rest of the labs (3–5).
 
 ## What you'll build
 
@@ -45,7 +45,7 @@ Open port `8000` in the Codespaces **Ports** tab. Press `Ctrl+C` when done and r
 ## 3. Create the resources
 
 ```bash
-# Resource group (shared by labs 6-9)
+# Resource group (shared by labs 1-4)
 az group create -n $RG -l $LOCATION --tags $LAB_TAG -o none
 
 # App Service plan: the size/spec of the "server pool" your app runs on
@@ -109,4 +109,4 @@ Open `$URL` in a browser too. **`/info`** shows values *the platform injected* (
 | Site shows `Application Error` | `az webapp log tail -g $RG -n $WEBAPP`; check the startup command (`app:app`) and `requirements.txt` |
 | `zip: command not found` | `sudo apt-get update && sudo apt-get install -y zip` |
 
-➡️ Next: [Lab 7. Azure Functions](../07-functions/README.en.md) (keep the web app; Lab 8 reuses it)
+➡️ Next: [Lab 2. Azure Functions](../02-functions/README.en.md) (keep the web app; Lab 3 reuses it)

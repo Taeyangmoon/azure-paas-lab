@@ -1,6 +1,6 @@
-# Lab 10. Azure Policy & Tag Governance: Allowed Locations, Required Tags
+# Lab 5. Azure Policy & Tag Governance: Allowed Locations, Required Tags
 
-🇺🇸 English | [🇰🇷 한국어](README.md) | [← Home](../../README.en.md) | [← Lab 9](../09-rbac-entra/README.en.md)
+🇺🇸 English | [🇰🇷 한국어](README.md) | [← Home](../../README.en.md) | [← Lab 4](../04-rbac-entra/README.en.md)
 
 ⏱ 20 min · 💸 Free · 🎯 **Watch non-compliant resource creation get rejected.**
 📌 This lab is standalone (separate resource group). You need permission to assign policies (e.g. Owner).
@@ -99,7 +99,7 @@ Evaluation takes a few minutes. You can also see charts in the portal: **Policy 
    ```
 
 2. **Auto-fill tags:** the built-in *Inherit a tag from the resource group* (`cd3aa116-8754-49c9-a813-ad46512ece54`) uses `Modify` to **copy the resource group's tag onto resources automatically** (Modify needs a managed identity, i.e. `--location`/`--mi-system-assigned` on the assignment). Governance isn't only denial.
-3. **Widen the scope:** assign the same policy at subscription/management group level and it's inherited by everything below (same scope idea as Lab 9).
+3. **Widen the scope:** assign the same policy at subscription/management group level and it's inherited by everything below (same scope idea as Lab 4).
 
 ## ❓ Quiz
 

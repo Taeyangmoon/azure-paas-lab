@@ -27,8 +27,8 @@ def index():
         f"<p>실행 위치 / Running on: <b>{where}</b></p>"
         "<ul>"
         "<li><a href='/info'>/info</a> – 플랫폼이 알려 주는 정보 / what the platform tells us</li>"
-        "<li><a href='/secret/reference'>/secret/reference</a> – 실습 8: Key Vault 참조 / Key Vault reference</li>"
-        "<li><a href='/secret/sdk'>/secret/sdk</a> – 실습 8: SDK + 관리 ID / SDK + managed identity</li>"
+        "<li><a href='/secret/reference'>/secret/reference</a> – 실습 3: Key Vault 참조 / Key Vault reference</li>"
+        "<li><a href='/secret/sdk'>/secret/sdk</a> – 실습 3: SDK + 관리 ID / SDK + managed identity</li>"
         "<li><a href='/healthz'>/healthz</a></li>"
         "</ul>"
     )

@@ -12,26 +12,26 @@ Nothing to install: open **GitHub Codespaces** in your browser and paste the com
 
 | # | Lab | Key question | Time |
 |---|-----|--------------|------|
-| 6 | [App Service: deploy a sample web app](labs/06-app-service/README.en.md) | What does PaaS manage for you that you'd manage yourself on a VM? | 20 min |
-| 7 | [Functions: HTTP-triggered function](labs/07-functions/README.en.md) | How little code and cost does serverless need? | 20 min |
-| 8 | [Key Vault + Managed Identity](labs/08-key-vault/README.en.md) | How can an app read secrets **without credentials in code**? | 25 min |
-| 9 | [RBAC & Microsoft Entra ID](labs/09-rbac-entra/README.en.md) | Who can do what, and where? (least privilege) | 25 min |
-| 10 | [Azure Policy & tag governance](labs/10-policy-governance/README.en.md) | How do you **automatically block** non-compliant resources? | 20 min |
+| 1 | [App Service: deploy a sample web app](labs/01-app-service/README.en.md) | What does PaaS manage for you that you'd manage yourself on a VM? | 20 min |
+| 2 | [Functions: HTTP-triggered function](labs/02-functions/README.en.md) | How little code and cost does serverless need? | 20 min |
+| 3 | [Key Vault + Managed Identity](labs/03-key-vault/README.en.md) | How can an app read secrets **without credentials in code**? | 25 min |
+| 4 | [RBAC & Microsoft Entra ID](labs/04-rbac-entra/README.en.md) | Who can do what, and where? (least privilege) | 25 min |
+| 5 | [Azure Policy & tag governance](labs/05-policy-governance/README.en.md) | How do you **automatically block** non-compliant resources? | 20 min |
 
-> Lab numbers follow the wider Azure curriculum. Do **6 → 7 → 8 → 9** in order (8 and 9 reuse the web app from lab 6). **Lab 10 is standalone.**
+> Everything you need is in this repository. Do **1 → 2 → 3 → 4** in order (labs 3 and 4 reuse the web app from lab 1; lab 2 is only used in an optional step of lab 3). **Lab 5 is standalone.**
 
 ```mermaid
 flowchart LR
-  A[6. App Service<br/>web app] --> C
-  B[7. Functions<br/>serverless] --> C
-  C[8. Key Vault<br/>+ Managed Identity] --> D[9. RBAC<br/>least privilege]
-  D --> E[10. Policy<br/>governance]
+  A[1. App Service<br/>web app] --> C
+  B[2. Functions<br/>serverless] -.optional.-> C
+  C[3. Key Vault<br/>+ Managed Identity] --> D[4. RBAC<br/>least privilege]
+  E[5. Policy<br/>governance]
 ```
 
 ## ✅ Prerequisites
 
 1. An **Azure subscription** – create a [free account](https://azure.microsoft.com/free/) (includes credits) if needed.
-   - You need **Owner** (or Contributor + User Access Administrator). Labs 9 and 10 create role and policy assignments, so use a *personal sandbox subscription, not a corporate one*.
+   - You need **Owner** (or Contributor + User Access Administrator). Labs 4 and 5 create role and policy assignments, so use a *personal sandbox subscription, not a corporate one*.
 2. A **GitHub account** (for Codespaces).
 
 ## 🚀 Getting started
@@ -49,7 +49,7 @@ flowchart LR
    bash scripts/00-setup.sh
    ```
 
-4. Continue with [Lab 6](labs/06-app-service/README.en.md). 🎉
+4. Continue with [Lab 1](labs/01-app-service/README.en.md). 🎉
 
 Every lab starts with `source scripts/env.sh`. It adds a **random suffix to resource names** (e.g. `app-paaslab-x7k2qa`) so names don't collide with other people's. Run it again in any new terminal.
 
@@ -70,17 +70,17 @@ Every lab starts with `source scripts/env.sh`. It adds a **random suffix to reso
 ```text
 .devcontainer/      Codespaces environment (Python 3.12, Azure CLI, Functions Core Tools)
 scripts/            env.sh (shared variables), 00-setup.sh (pre-flight), cleanup.sh (delete all)
-src/webapp/         Sample Flask web app for labs 6 & 8
-src/function/       Sample Azure Functions app (Python v2) for labs 7 & 8
+src/webapp/         Sample Flask web app for labs 1 & 3
+src/function/       Sample Azure Functions app (Python v2) for labs 2 & 3
 labs/               Lab guides (Korean README.md / English README.en.md)
 ```
 
 ## 🔐 Security principles in this lab
 
-- **No passwords or keys** in code or the repo (Lab 8).
-- Grant **least privilege** at the narrowest scope (Lab 9).
-- Enforce rules with **policy**, not memory (Lab 10).
-- The web app is deployed HTTPS-only, TLS 1.2+, FTP disabled (Lab 6).
+- **No passwords or keys** in code or the repo (Lab 3).
+- Grant **least privilege** at the narrowest scope (Lab 4).
+- Enforce rules with **policy**, not memory (Lab 5).
+- The web app is deployed HTTPS-only, TLS 1.2+, FTP disabled (Lab 1).
 
 ## 📄 License
 

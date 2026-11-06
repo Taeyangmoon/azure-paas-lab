@@ -1,9 +1,9 @@
-# Lab 8. Azure Key Vault + Managed Identity
+# Lab 3. Azure Key Vault + Managed Identity
 
-🇺🇸 English | [🇰🇷 한국어](README.md) | [← Home](../../README.en.md) | [← Lab 7](../07-functions/README.en.md) | [Next: Lab 9 →](../09-rbac-entra/README.en.md)
+🇺🇸 English | [🇰🇷 한국어](README.md) | [← Home](../../README.en.md) | [← Lab 2](../02-functions/README.en.md) | [Next: Lab 4 →](../04-rbac-entra/README.en.md)
 
 ⏱ 25 min · 💸 Cents · 🎯 **Internalize "never put credentials in code" by doing it.**
-📌 Prerequisite: [Lab 6](../06-app-service/README.en.md) completed (web app required)
+📌 Prerequisite: [Lab 1](../01-app-service/README.en.md) completed (web app required)
 
 ## Concept first
 
@@ -123,14 +123,14 @@ sleep 3; curl -s localhost:8000/secret/sdk; kill %1; cd ../..
 az role assignment delete --assignee $PRINCIPAL_ID --role "Key Vault Secrets User" --scope $KV_ID
 ```
 
-After a few minutes `curl -s $URL/secret/sdk` returns a `Forbidden` (403) error. Key Vault checks permissions on **every request**, so you can revoke access instantly without touching code. Restore it afterwards (Lab 9 needs it):
+After a few minutes `curl -s $URL/secret/sdk` returns a `Forbidden` (403) error. Key Vault checks permissions on **every request**, so you can revoke access instantly without touching code. Restore it afterwards (Lab 4 needs it):
 
 ```bash
 az role assignment create --assignee-object-id $PRINCIPAL_ID --assignee-principal-type ServicePrincipal \
   --role "Key Vault Secrets User" --scope $KV_ID -o none
 ```
 
-## 7. (Optional) Do the same for the function app
+## 7. (Optional) Do the same for the function app — if you completed Lab 2
 
 ```bash
 FUNC_PID=$(az functionapp identity assign -g $RG -n $FUNCAPP --query principalId -o tsv)
@@ -160,4 +160,4 @@ curl -s "https://$(az functionapp show -g $RG -n $FUNCAPP --query defaultHostNam
 
 > ⚠️ In production also enable Key Vault **purge protection** and network restrictions (Private Endpoint). This lab leaves them off to keep cleanup simple.
 
-➡️ Next: [Lab 9. RBAC & Microsoft Entra ID](../09-rbac-entra/README.en.md)
+➡️ Next: [Lab 4. RBAC & Microsoft Entra ID](../04-rbac-entra/README.en.md)

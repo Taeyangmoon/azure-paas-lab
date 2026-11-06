@@ -27,8 +27,8 @@ def hello(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.route(route="secret", methods=["GET"])
 def secret(req: func.HttpRequest) -> func.HttpResponse:
-    """실습 8(선택): Key Vault 참조로 주입된 앱 설정을 평범한 환경변수로 읽습니다.
-    Lab 8 (optional): reads a Key Vault-referenced app setting as a plain env var."""
+    """실습 3(선택): Key Vault 참조로 주입된 앱 설정을 평범한 환경변수로 읽습니다.
+    Lab 3 (optional): reads a Key Vault-referenced app setting as a plain env var."""
     value = os.getenv("SECRET_FROM_REFERENCE")
     if not value:
         body = {"status": "not-configured"}
