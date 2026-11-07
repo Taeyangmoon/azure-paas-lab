@@ -72,15 +72,18 @@ az webapp config appsettings set -g $RG -n $WEBAPP \
 
 ```bash
 (cd src/webapp && zip -qr ../../webapp.zip . -x "__pycache__/*")
-az webapp deploy -g $RG -n $WEBAPP --src-path webapp.zip --type zip
+az webapp deploy -g $RG -n $WEBAPP --src-path webapp.zip --type zip --track-status false
 ```
+
+After upload/build completes, verify startup using real HTTP responses in the next step. On F1, Azure's startup status can remain at `Starting the site...` even when the app responds, so startup-status tracking is disabled on the deployment command.
 
 ## 5. Verify
 
 ```bash
 URL="https://$(az webapp show -g $RG -n $WEBAPP --query defaultHostName -o tsv)"
 echo $URL
-curl -s $URL/info
+curl --fail --show-error --retry 12 --retry-delay 10 --max-time 60 $URL/healthz
+curl --fail --show-error --max-time 60 $URL/info
 ```
 
 Open `$URL` in a browser too. **`/info`** shows values *the platform injected* (`WEBSITE_SITE_NAME`…), the Python version and the OS: things you never installed. That's PaaS.

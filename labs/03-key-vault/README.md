@@ -55,11 +55,11 @@ az role assignment create --assignee-object-id $ME --assignee-principal-type Use
   --role "Key Vault Secrets Officer" --scope $KV_ID -o none
 ```
 
-역할이 적용되기까지 1~2분 걸립니다. 성공할 때까지 반복합니다.
+역할이 적용되기까지 1~2분 걸립니다. RBAC 전파 오류만 최대 10회 재시도합니다. 네트워크/조직 정책 오류는 즉시 표시하고 중단합니다.
 
 ```bash
-until az keyvault secret set --vault-name $KV -n demo-secret --value "my-super-secret-value" -o none 2>/dev/null; do echo "권한 전파 대기 중..."; sleep 15; done
-echo "✅ 비밀 저장됨"
+bash scripts/retry.sh az keyvault secret set --vault-name $KV -n demo-secret \
+  --value "my-super-secret-value" -o none && echo "✅ 비밀 저장됨"
 ```
 
 ## 3. 웹앱에 관리 ID 켜고, 최소 권한 부여
@@ -86,8 +86,8 @@ az webapp restart -g $RG -n $WEBAPP
 
 ```bash
 URL="https://$(az webapp show -g $RG -n $WEBAPP --query defaultHostName -o tsv)"
-curl -s $URL/secret/reference
-# {"secret":"my**************** (length=21)","status":"ok"}
+curl -i $URL/secret/reference
+# {"secret":"my******************* (length=21)","status":"ok"}
 ```
 
 앱 코드(`app.py`)에는 Key Vault 도, 비밀번호도 없습니다. 환경변수 `SECRET_FROM_REFERENCE` 만 읽습니다. App Service가 관리 ID로 Key Vault에서 값을 가져와 주입한 것입니다.
@@ -99,7 +99,7 @@ curl -s $URL/secret/reference
 ```bash
 az webapp config appsettings set -g $RG -n $WEBAPP -o none --settings \
   "KEY_VAULT_URL=https://$KV.vault.azure.net/" "KEY_VAULT_SECRET_NAME=demo-secret"
-curl -s $URL/secret/sdk
+curl -i $URL/secret/sdk
 ```
 
 핵심 코드 (`src/webapp/app.py`):
@@ -123,7 +123,7 @@ sleep 3; curl -s localhost:8000/secret/sdk; kill %1; cd ../..
 az role assignment delete --assignee $PRINCIPAL_ID --role "Key Vault Secrets User" --scope $KV_ID
 ```
 
-몇 분 뒤 `curl -s $URL/secret/sdk` 가 `Forbidden` (403) 오류를 반환합니다. **권한은 Key Vault가 매 요청마다 확인**하므로 코드를 건드리지 않고 접근을 즉시 회수할 수 있습니다. 실습 4에서 다시 부여하니 확인했다면 복구하세요.
+역할 변경이 전파된 뒤 `curl -i $URL/secret/sdk` 가 `Forbidden` (403) 오류를 반환합니다. 코드를 건드리지 않고 접근을 회수할 수 있지만 **RBAC 캐시 때문에 즉시 반영되지는 않을 수 있습니다**. 확인했다면 실습 4를 위해 권한을 복구하세요.
 
 ```bash
 az role assignment create --assignee-object-id $PRINCIPAL_ID --assignee-principal-type ServicePrincipal \
@@ -140,8 +140,10 @@ az functionapp config appsettings set -g $RG -n $FUNCAPP -o none --settings \
   "SECRET_FROM_REFERENCE=@Microsoft.KeyVault(VaultName=$KV;SecretName=demo-secret)"
 # 1~2분 후
 KEY=$(az functionapp keys list -g $RG -n $FUNCAPP --query functionKeys.default -o tsv)
-curl -s "https://$(az functionapp show -g $RG -n $FUNCAPP --query defaultHostName -o tsv)/api/secret" -H "x-functions-key: $KEY"
+curl -i "https://$(az functionapp show -g $RG -n $FUNCAPP --query defaultHostName -o tsv)/api/secret" -H "x-functions-key: $KEY"
 ```
+
+함수도 웹앱과 동일하게 설정 누락은 HTTP 404, 참조 해석 실패는 HTTP 502, 성공은 HTTP 200으로 응답합니다.
 
 ## ❓ 점검 퀴즈
 

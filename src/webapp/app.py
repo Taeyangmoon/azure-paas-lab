@@ -3,6 +3,7 @@ import platform
 import sys
 from datetime import datetime, timezone
 
+from azure.core.exceptions import AzureError, HttpResponseError
 from flask import Flask, jsonify
 
 app = Flask(__name__)
@@ -81,8 +82,11 @@ def secret_from_sdk():
 
         client = SecretClient(vault_url=vault_url, credential=DefaultAzureCredential())
         return jsonify(status="ok", secret=mask(client.get_secret(name).value))
-    except Exception as exc:  # 실습용: 오류 종류와 첫 줄만 보여 줍니다 / lab only: show error type + first line
-        return jsonify(status="error", type=type(exc).__name__, message=str(exc).splitlines()[0][:300]), 502
+    except AzureError as exc:
+        message = str(exc).splitlines()[0][:300]
+        app.logger.warning("Key Vault request failed (%s): %s", type(exc).__name__, message)
+        status_code = exc.status_code if isinstance(exc, HttpResponseError) and exc.status_code in (401, 403, 404) else 502
+        return jsonify(status="error", type=type(exc).__name__, message=message), status_code
 
 
 if __name__ == "__main__":

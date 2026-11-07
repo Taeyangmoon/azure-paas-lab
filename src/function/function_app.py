@@ -14,13 +14,15 @@ def hello(req: func.HttpRequest) -> func.HttpResponse:
     name = req.params.get("name")
     if not name:
         try:
-            name = (req.get_json() or {}).get("name")
+            body = req.get_json()
+            name = body.get("name") if isinstance(body, dict) else None
         except ValueError:
             name = None
     logging.info("hello called (name=%s)", name)
-    if not name:
+    if not isinstance(name, str) or not name.strip():
         return func.HttpResponse(
-            "name 쿼리 문자열 또는 JSON 본문을 넣어 주세요 / Pass ?name=... or a JSON body.", status_code=400
+            "name은 비어 있지 않은 문자열이어야 합니다 / Pass a non-empty name string via ?name=... or JSON.",
+            status_code=400,
         )
     return func.HttpResponse(f"안녕하세요, {name}! Hello from Azure Functions 👋")
 
@@ -32,8 +34,13 @@ def secret(req: func.HttpRequest) -> func.HttpResponse:
     value = os.getenv("SECRET_FROM_REFERENCE")
     if not value:
         body = {"status": "not-configured"}
+        status_code = 404
     elif value.startswith("@Microsoft.KeyVault("):
         body = {"status": "unresolved"}
+        status_code = 502
     else:
         body = {"status": "ok", "secret": f"{value[:2]}{'*' * max(len(value) - 2, 0)} (length={len(value)})"}
-    return func.HttpResponse(json.dumps(body), mimetype="application/json")
+        status_code = 200
+    if status_code != 200:
+        logging.warning("Secret reference is %s", body["status"])
+    return func.HttpResponse(json.dumps(body), status_code=status_code, mimetype="application/json")

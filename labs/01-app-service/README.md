@@ -72,15 +72,18 @@ az webapp config appsettings set -g $RG -n $WEBAPP \
 
 ```bash
 (cd src/webapp && zip -qr ../../webapp.zip . -x "__pycache__/*")
-az webapp deploy -g $RG -n $WEBAPP --src-path webapp.zip --type zip
+az webapp deploy -g $RG -n $WEBAPP --src-path webapp.zip --type zip --track-status false
 ```
+
+업로드·빌드가 끝나면 다음 단계에서 실제 HTTP 응답으로 기동을 확인합니다. F1에서는 앱이 응답해도 Azure의 기동 상태 조회가 계속 `Starting the site...`에 머물 수 있어, 배포 명령의 기동 상태 추적은 끕니다.
 
 ## 5. 확인
 
 ```bash
 URL="https://$(az webapp show -g $RG -n $WEBAPP --query defaultHostName -o tsv)"
 echo $URL
-curl -s $URL/info
+curl --fail --show-error --retry 12 --retry-delay 10 --max-time 60 $URL/healthz
+curl --fail --show-error --max-time 60 $URL/info
 ```
 
 브라우저로 `$URL` 도 열어 보세요. **`/info`** 에서 `WEBSITE_SITE_NAME` 등 *플랫폼이 넣어 준 값*과 Python 버전, OS를 볼 수 있습니다. 내가 설치한 적 없는 것들입니다. 이게 PaaS입니다.

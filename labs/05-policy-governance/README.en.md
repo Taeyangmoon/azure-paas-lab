@@ -46,16 +46,16 @@ az policy assignment create --name require-costcenter-tag \
 az policy assignment list --scope $SCOPE --query "[].displayName" -o tsv
 ```
 
-> ⏳ A new assignment **usually takes a few minutes (up to ~30)** to take effect. If you try step 3 too early, the resource may *get created* instead of denied. Delete it (or the whole resource group) and retry.
+> ⏳ A new assignment **usually takes a few minutes (up to ~30)** to take effect. If step 3 (a)/(b) *creates* an account instead of denying it, delete only that account with `az storage account delete -g $POLICY_RG -n <created-account-name> --yes`, wait a few minutes, and retry. Keep the resource group containing the policy assignments.
 
 ## 3. Try to create violating resources 💥
 
-We use storage accounts (lowercase letters and digits only).
+We use storage accounts (lowercase letters and digits only), with a different name for each case to avoid collisions if propagation delays allow an earlier creation.
 
 **(a) Disallowed region** (tag present)
 
 ```bash
-az storage account create -g $POLICY_RG -n stpol$LAB_SUFFIX -l eastus --sku Standard_LRS \
+az storage account create -g $POLICY_RG -n stloc$LAB_SUFFIX -l eastus --sku Standard_LRS \
   --tags costCenter=lab -o none
 ```
 
@@ -64,7 +64,7 @@ az storage account create -g $POLICY_RG -n stpol$LAB_SUFFIX -l eastus --sku Stan
 **(b) Missing required tag** (allowed region)
 
 ```bash
-az storage account create -g $POLICY_RG -n stpol$LAB_SUFFIX -l koreacentral --sku Standard_LRS -o none
+az storage account create -g $POLICY_RG -n sttag$LAB_SUFFIX -l koreacentral --sku Standard_LRS -o none
 ```
 
 → `RequestDisallowedByPolicy ... Require costCenter tag (lab)` ✅
@@ -90,12 +90,17 @@ Evaluation takes a few minutes. You can also see charts in the portal: **Policy 
 
 ## 5. Challenges
 
-1. **Switch to Audit:** *Allowed locations* supports an `effect` parameter. Create an `Audit` assignment: violations are then only *recorded as non-compliant* instead of denied, a safe way to roll out new rules.
+1. **Switch to Audit:** *Allowed locations* supports an `effect` parameter. **Update the existing `allowed-locations` assignment using the same name.** Adding an Audit assignment with a new name leaves the original Deny in force. After propagation, violations are only *recorded as non-compliant* instead of denied.
 
    ```bash
-   az policy assignment create --name allowed-locations-audit --display-name "Allowed locations - Audit (lab)" \
+   az policy assignment create --name allowed-locations --display-name "Allowed locations - Audit (lab)" \
      --scope $SCOPE --policy e56962a6-4747-49cd-b67b-bf8b01975c4c \
      --params '{"listOfAllowedLocations":{"value":["koreacentral"]},"effect":{"value":"Audit"}}' -o none
+
+   # After propagation: creation outside the allowed region succeeds (required-tag policy remains)
+   az storage account create -g $POLICY_RG -n staud$LAB_SUFFIX -l eastus --sku Standard_LRS \
+     --tags costCenter=lab -o none
+   az policy state trigger-scan -g $POLICY_RG --no-wait
    ```
 
 2. **Auto-fill tags:** the built-in *Inherit a tag from the resource group* (`cd3aa116-8754-49c9-a813-ad46512ece54`) uses `Modify` to **copy the resource group's tag onto resources automatically** (Modify needs a managed identity, i.e. `--location`/`--mi-system-assigned` on the assignment). Governance isn't only denial.

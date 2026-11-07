@@ -67,7 +67,7 @@ Use a **separate login session** so your own `az login` stays intact:
 
 ```bash
 as_sp() { AZURE_CONFIG_DIR="$LAB_ROOT/.azure-sp" "$@"; }
-as_sp az login --service-principal -u $SP_APP_ID -p "$SP_PASSWORD" --tenant $SP_TENANT -o none
+as_sp bash scripts/retry.sh az login --service-principal -u $SP_APP_ID --password="$SP_PASSWORD" --tenant $SP_TENANT -o none
 
 # ✅ Read: works
 as_sp az group show -n $RG --query name -o tsv
@@ -88,11 +88,8 @@ Suppose this principal must now create storage accounts. Don't hand out `Contrib
 az role assignment create --assignee-object-id $SP_OBJECT_ID --assignee-principal-type ServicePrincipal \
   --role "Storage Account Contributor" --scope $RG_ID -o none
 
-for i in $(seq 1 10); do
-  as_sp az storage account create -g $RG -n st9$LAB_SUFFIX -l $LOCATION --sku Standard_LRS -o none 2>/dev/null \
-    && { echo "✅ storage account created"; break; }
-  echo "⏳ waiting for propagation ($i/10)..."; sleep 20
-done
+as_sp bash scripts/retry.sh az storage account create -g $RG -n st9$LAB_SUFFIX \
+  -l $LOCATION --sku Standard_LRS -o none && echo "✅ storage account created"
 
 # ❌ Still can't stop the web app (no Microsoft.Web permission)
 as_sp az webapp stop -g $RG -n $WEBAPP
@@ -116,17 +113,14 @@ cat > /tmp/role.json <<EOF
   "AssignableScopes": ["$RG_ID"]
 }
 EOF
-az role definition create --role-definition @/tmp/role.json -o none
+ROLE_ID=$(az role definition create --role-definition @/tmp/role.json --query name -o tsv)
 
-# Until the new role definition propagates you get "Role ... doesn't exist", so retry until it works
-for i in $(seq 1 10); do
-  az role assignment create --assignee-object-id $SP_OBJECT_ID --assignee-principal-type ServicePrincipal \
-    --role "Web App Restarter ($LAB_SUFFIX)" --scope $RG_ID -o none 2>/dev/null && { echo "✅ Role assigned"; break; }
-  echo "⏳ Waiting for role definition to propagate ($i/10)..."; sleep 15
-done
+# Use the returned role ID to avoid propagation delays in name lookup
+bash scripts/retry.sh az role assignment create --assignee-object-id $SP_OBJECT_ID \
+  --assignee-principal-type ServicePrincipal --role "$ROLE_ID" --scope $RG_ID -o none
 
-# after 1-3 minutes
-as_sp az webapp restart -g $RG -n $WEBAPP      # ✅
+# Retry role assignment propagation errors within a fixed limit
+as_sp bash scripts/retry.sh az webapp restart -g $RG -n $WEBAPP  # ✅
 as_sp az webapp stop -g $RG -n $WEBAPP         # ❌ still denied
 ```
 

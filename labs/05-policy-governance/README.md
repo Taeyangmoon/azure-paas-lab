@@ -46,16 +46,16 @@ az policy assignment create --name require-costcenter-tag \
 az policy assignment list --scope $SCOPE --query "[].displayName" -o tsv
 ```
 
-> ⏳ 새 정책 할당이 실제로 적용되기까지 **보통 몇 분(최대 약 30분)** 걸립니다. 그 사이 3단계를 시도하면 거부되지 않고 *생성될 수도* 있습니다. 그 경우 `az resource delete`/리소스 그룹째 삭제 후 다시 시도하세요.
+> ⏳ 새 정책 할당이 실제로 적용되기까지 **보통 몇 분(최대 약 30분)** 걸립니다. 그 사이 3단계 (a)/(b)가 거부되지 않고 *생성될 수도* 있습니다. 해당 계정만 `az storage account delete -g $POLICY_RG -n <생성된 계정 이름> --yes`로 삭제하고 몇 분 뒤 재시도하세요. 정책 할당이 있는 리소스 그룹은 유지합니다.
 
 ## 3. 위반 리소스 만들어 보기 💥
 
-스토리지 계정으로 시험합니다 (이름은 소문자/숫자만).
+스토리지 계정으로 시험합니다 (이름은 소문자/숫자만). 각 경우에 다른 이름을 써서 정책 적용 지연으로 생성된 계정과 충돌하지 않게 합니다.
 
 **(a) 허용되지 않은 지역** (태그는 있음)
 
 ```bash
-az storage account create -g $POLICY_RG -n stpol$LAB_SUFFIX -l eastus --sku Standard_LRS \
+az storage account create -g $POLICY_RG -n stloc$LAB_SUFFIX -l eastus --sku Standard_LRS \
   --tags costCenter=lab -o none
 ```
 
@@ -64,7 +64,7 @@ az storage account create -g $POLICY_RG -n stpol$LAB_SUFFIX -l eastus --sku Stan
 **(b) 필수 태그 누락** (지역은 허용)
 
 ```bash
-az storage account create -g $POLICY_RG -n stpol$LAB_SUFFIX -l koreacentral --sku Standard_LRS -o none
+az storage account create -g $POLICY_RG -n sttag$LAB_SUFFIX -l koreacentral --sku Standard_LRS -o none
 ```
 
 → `RequestDisallowedByPolicy ... Require costCenter tag (lab)` 오류 ✅
@@ -90,12 +90,17 @@ az policy state list -g $POLICY_RG \
 
 ## 5. 도전 과제
 
-1. **Audit 로 바꾸기:** *Allowed locations* 는 `effect` 파라미터를 지원합니다. 할당을 `Audit` 으로 다시 만들어 보세요. 거부 대신 *비준수로 기록*만 됩니다. 처음 도입할 때 안전한 방법입니다.
+1. **Audit 로 바꾸기:** *Allowed locations* 는 `effect` 파라미터를 지원합니다. **기존 `allowed-locations` 할당을 같은 이름으로 업데이트**하세요. 새 이름으로 Audit 할당을 추가하면 기존 Deny가 계속 생성을 막습니다. 변경 전파 후에는 거부 대신 *비준수로 기록*만 됩니다.
 
    ```bash
-   az policy assignment create --name allowed-locations-audit --display-name "Allowed locations - Audit (lab)" \
+   az policy assignment create --name allowed-locations --display-name "Allowed locations - Audit (lab)" \
      --scope $SCOPE --policy e56962a6-4747-49cd-b67b-bf8b01975c4c \
      --params '{"listOfAllowedLocations":{"value":["koreacentral"]},"effect":{"value":"Audit"}}' -o none
+
+   # 변경 전파 후: 허용 지역 밖이어도 생성 성공 (필수 태그 정책은 유지)
+   az storage account create -g $POLICY_RG -n staud$LAB_SUFFIX -l eastus --sku Standard_LRS \
+     --tags costCenter=lab -o none
+   az policy state trigger-scan -g $POLICY_RG --no-wait
    ```
 
 2. **태그 자동 채우기:** 내장 정책 *Inherit a tag from the resource group*(`cd3aa116-8754-49c9-a813-ad46512ece54`)은 `Modify` 효과로 리소스 그룹의 태그를 리소스에 **자동으로 복사**합니다(수정 효과는 관리 ID와 `--location`/`--mi-system-assigned` 옵션이 필요합니다). 거부만이 거버넌스가 아닙니다.

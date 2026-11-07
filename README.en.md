@@ -32,6 +32,7 @@ flowchart LR
 
 1. An **Azure subscription** – create a [free account](https://azure.microsoft.com/free/) (includes credits) if needed.
    - You need **Owner** (or Contributor + User Access Administrator). Labs 4 and 5 create role and policy assignments, so use a *personal sandbox subscription, not a corporate one*.
+   - Labs 2 and 3 use public access to Storage/Key Vault. Organization policies that enforce private networking or disable storage key authentication prevent completing them. Do not bypass those policies; use a lab subscription without these restrictions.
 2. A **GitHub account** (for Codespaces).
 
 ## 🚀 Getting started
@@ -73,7 +74,19 @@ scripts/            env.sh (shared variables), 00-setup.sh (pre-flight), cleanup
 src/webapp/         Sample Flask web app for labs 1 & 3
 src/function/       Sample Azure Functions app (Python v2) for labs 2 & 3
 labs/               Lab guides (Korean README.md / English README.en.md)
+tests/              Regression tests for app errors, RBAC retries, and cleanup
 ```
+
+## 🧪 Local regression checks
+
+Run in the Python 3.12 Codespaces environment (outside Codespaces, install dependencies from both `requirements.txt` files first).
+
+```bash
+python -m unittest discover -s tests -v
+for script in scripts/*.sh; do bash -n "$script" || exit; done
+```
+
+GitHub Actions runs the same checks without Azure credentials or resources. These checks do not replace executing the real Azure labs.
 
 ## 🔐 Security principles in this lab
 

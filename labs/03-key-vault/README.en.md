@@ -55,11 +55,11 @@ az role assignment create --assignee-object-id $ME --assignee-principal-type Use
   --role "Key Vault Secrets Officer" --scope $KV_ID -o none
 ```
 
-It takes 1-2 minutes to take effect. Retry until it works:
+It takes 1-2 minutes to take effect. Retry RBAC propagation errors at most 10 times. Network/organization policy errors are shown and stop immediately:
 
 ```bash
-until az keyvault secret set --vault-name $KV -n demo-secret --value "my-super-secret-value" -o none 2>/dev/null; do echo "waiting for permission to propagate..."; sleep 15; done
-echo "✅ secret stored"
+bash scripts/retry.sh az keyvault secret set --vault-name $KV -n demo-secret \
+  --value "my-super-secret-value" -o none && echo "✅ secret stored"
 ```
 
 ## 3. Enable the web app's managed identity, grant least privilege
@@ -86,8 +86,8 @@ Check after a moment (you may see `unresolved` first because of role propagation
 
 ```bash
 URL="https://$(az webapp show -g $RG -n $WEBAPP --query defaultHostName -o tsv)"
-curl -s $URL/secret/reference
-# {"secret":"my**************** (length=21)","status":"ok"}
+curl -i $URL/secret/reference
+# {"secret":"my******************* (length=21)","status":"ok"}
 ```
 
 The app code (`app.py`) has neither Key Vault code nor a password. It only reads the env var `SECRET_FROM_REFERENCE`. App Service fetched the value with the managed identity and injected it.
@@ -99,7 +99,7 @@ The app code (`app.py`) has neither Key Vault code nor a password. It only reads
 ```bash
 az webapp config appsettings set -g $RG -n $WEBAPP -o none --settings \
   "KEY_VAULT_URL=https://$KV.vault.azure.net/" "KEY_VAULT_SECRET_NAME=demo-secret"
-curl -s $URL/secret/sdk
+curl -i $URL/secret/sdk
 ```
 
 Core code (`src/webapp/app.py`):
@@ -123,7 +123,7 @@ sleep 3; curl -s localhost:8000/secret/sdk; kill %1; cd ../..
 az role assignment delete --assignee $PRINCIPAL_ID --role "Key Vault Secrets User" --scope $KV_ID
 ```
 
-After a few minutes `curl -s $URL/secret/sdk` returns a `Forbidden` (403) error. Key Vault checks permissions on **every request**, so you can revoke access instantly without touching code. Restore it afterwards (Lab 4 needs it):
+After the role change propagates, `curl -i $URL/secret/sdk` returns a `Forbidden` (403) error. You can revoke access without touching code, but **RBAC caching means revocation is not necessarily immediate**. Restore the permission afterwards (Lab 4 needs it):
 
 ```bash
 az role assignment create --assignee-object-id $PRINCIPAL_ID --assignee-principal-type ServicePrincipal \
@@ -140,8 +140,10 @@ az functionapp config appsettings set -g $RG -n $FUNCAPP -o none --settings \
   "SECRET_FROM_REFERENCE=@Microsoft.KeyVault(VaultName=$KV;SecretName=demo-secret)"
 # after 1-2 minutes
 KEY=$(az functionapp keys list -g $RG -n $FUNCAPP --query functionKeys.default -o tsv)
-curl -s "https://$(az functionapp show -g $RG -n $FUNCAPP --query defaultHostName -o tsv)/api/secret" -H "x-functions-key: $KEY"
+curl -i "https://$(az functionapp show -g $RG -n $FUNCAPP --query defaultHostName -o tsv)/api/secret" -H "x-functions-key: $KEY"
 ```
+
+Like the web app, the function returns HTTP 404 for a missing setting, HTTP 502 for an unresolved reference, and HTTP 200 on success.
 
 ## ❓ Quiz
 

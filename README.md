@@ -32,6 +32,7 @@ flowchart LR
 
 1. **Azure 구독** – 없다면 [무료 계정](https://azure.microsoft.com/free/)(크레딧 제공)을 만드세요.
    - 구독에서 **Owner**(또는 Contributor + User Access Administrator) 권한이 필요합니다. 실습 4·5는 역할 할당/정책 할당을 하므로 *회사 구독이 아닌 개인 실습용 구독*을 권장합니다.
+   - 실습 2·3은 스토리지/Key Vault의 공용 접근을 사용합니다. 공용 네트워크 또는 스토리지 키 인증을 강제로 차단하는 조직 정책이 있으면 끝까지 수행할 수 없습니다. 정책을 우회하지 말고, 해당 제한이 없는 실습용 구독을 사용하세요.
 2. **GitHub 계정** (Codespaces 사용)
 
 ## 🚀 시작하기
@@ -73,7 +74,19 @@ scripts/            env.sh(공통 변수), 00-setup.sh(사전 점검), cleanup.s
 src/webapp/         실습 1·3 샘플 Flask 웹앱
 src/function/       실습 2·3 샘플 Azure Functions (Python v2)
 labs/               실습 문서 (한국어 README.md / English README.en.md)
+tests/              앱 오류 응답·RBAC 재시도·정리 스크립트 회귀 테스트
 ```
+
+## 🧪 로컬 회귀 검증
+
+Codespaces의 Python 3.12 환경에서 실행합니다 (외부 환경에서는 두 `requirements.txt`의 의존성을 먼저 설치).
+
+```bash
+python -m unittest discover -s tests -v
+for script in scripts/*.sh; do bash -n "$script" || exit; done
+```
+
+GitHub Actions에서도 같은 검사를 실행합니다. Azure 자격 증명이나 리소스 없이 수행하는 검사이며, 실제 Azure 실습의 대체 검증은 아닙니다.
 
 ## 🔐 이 랩의 보안 원칙
 

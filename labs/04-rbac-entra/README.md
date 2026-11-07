@@ -67,7 +67,7 @@ SP_OBJECT_ID=$(az ad sp show --id $SP_APP_ID --query id -o tsv)
 
 ```bash
 as_sp() { AZURE_CONFIG_DIR="$LAB_ROOT/.azure-sp" "$@"; }
-as_sp az login --service-principal -u $SP_APP_ID -p "$SP_PASSWORD" --tenant $SP_TENANT -o none
+as_sp bash scripts/retry.sh az login --service-principal -u $SP_APP_ID --password="$SP_PASSWORD" --tenant $SP_TENANT -o none
 
 # ✅ 읽기: 성공
 as_sp az group show -n $RG --query name -o tsv
@@ -88,11 +88,8 @@ as_sp az keyvault secret show --vault-name $KV -n demo-secret
 az role assignment create --assignee-object-id $SP_OBJECT_ID --assignee-principal-type ServicePrincipal \
   --role "Storage Account Contributor" --scope $RG_ID -o none
 
-for i in $(seq 1 10); do
-  as_sp az storage account create -g $RG -n st9$LAB_SUFFIX -l $LOCATION --sku Standard_LRS -o none 2>/dev/null \
-    && { echo "✅ 스토리지 생성 성공"; break; }
-  echo "⏳ 권한 전파 대기 ($i/10)..."; sleep 20
-done
+as_sp bash scripts/retry.sh az storage account create -g $RG -n st9$LAB_SUFFIX \
+  -l $LOCATION --sku Standard_LRS -o none && echo "✅ 스토리지 생성 성공"
 
 # ❌ 하지만 웹앱을 멈추는 것은 여전히 불가 (Microsoft.Web 권한 없음)
 as_sp az webapp stop -g $RG -n $WEBAPP
@@ -116,17 +113,14 @@ cat > /tmp/role.json <<EOF
   "AssignableScopes": ["$RG_ID"]
 }
 EOF
-az role definition create --role-definition @/tmp/role.json -o none
+ROLE_ID=$(az role definition create --role-definition @/tmp/role.json --query name -o tsv)
 
-# 새 역할 정의가 전파되기 전에는 "Role ... doesn't exist" 가 나므로 될 때까지 재시도합니다
-for i in $(seq 1 10); do
-  az role assignment create --assignee-object-id $SP_OBJECT_ID --assignee-principal-type ServicePrincipal \
-    --role "Web App Restarter ($LAB_SUFFIX)" --scope $RG_ID -o none 2>/dev/null && { echo "✅ 역할 할당됨"; break; }
-  echo "⏳ 역할 정의 전파 대기 ($i/10)..."; sleep 15
-done
+# 반환된 역할 ID를 사용하면 이름 검색의 전파 지연을 피할 수 있습니다
+bash scripts/retry.sh az role assignment create --assignee-object-id $SP_OBJECT_ID \
+  --assignee-principal-type ServicePrincipal --role "$ROLE_ID" --scope $RG_ID -o none
 
-# 1~3분 후
-as_sp az webapp restart -g $RG -n $WEBAPP      # ✅
+# 역할 할당의 전파 오류만 제한적으로 재시도합니다
+as_sp bash scripts/retry.sh az webapp restart -g $RG -n $WEBAPP  # ✅
 as_sp az webapp stop -g $RG -n $WEBAPP         # ❌ 여전히 거부
 ```
 
