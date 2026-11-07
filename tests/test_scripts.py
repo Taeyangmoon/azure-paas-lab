@@ -73,6 +73,22 @@ esac
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse((self.root / ".lab-env").exists())
 
+    def test_private_vault_requires_paid_consent_before_azure_commands(self):
+        for script in ("03-key-vault.sh", "private-network.sh"):
+            shutil.copyfile(ROOT / "scripts" / script, self.root / "scripts" / script)
+        self.executable("git", f"printf '%s\\n' '{self.root}'\n")
+        self.executable("az", "touch azure-called; exit 9\n")
+        result = subprocess.run(
+            ["bash", "scripts/03-key-vault.sh"],
+            cwd=self.root,
+            env=self.env,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertIn("--allow-paid", result.stderr)
+        self.assertFalse((self.root / "azure-called").exists())
+
     def test_retry_handles_only_rbac_propagation_errors(self):
         self.executable("sleep", "exit 0\n")
         self.executable(

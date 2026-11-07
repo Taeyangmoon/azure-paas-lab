@@ -13,8 +13,8 @@
 | # | 실습 | 핵심 질문 | 시간 |
 |---|------|-----------|------|
 | 1 | [App Service: 샘플 웹앱 배포](labs/01-app-service/README.md) | VM이라면 내가 해야 했을 일을 PaaS가 대신 해 주는 것은? | 20분 |
-| 2 | [Functions: HTTP 트리거 함수](labs/02-functions/README.md) | 서버리스는 코드를 얼마나 짧게, 비용을 얼마나 적게 만들까? | 20분 |
-| 3 | [Key Vault + 관리 ID](labs/03-key-vault/README.md) | 비밀번호를 **코드에 넣지 않고** 앱이 비밀을 읽으려면? | 25분 |
+| 2 | [Functions: HTTP 트리거 함수](labs/02-functions/README.md) | 서버리스는 코드를 얼마나 짧게, 비용을 얼마나 적게 만들까? | 20~30분 |
+| 3 | [Key Vault + 관리 ID](labs/03-key-vault/README.md) | 비밀번호를 **코드에 넣지 않고** 앱이 비밀을 읽으려면? | 25~35분 |
 | 4 | [RBAC & Microsoft Entra ID](labs/04-rbac-entra/README.md) | "누가, 무엇을, 어디까지" 할 수 있게 할까? (최소 권한) | 25분 |
 | 5 | [Azure Policy & 태그 거버넌스](labs/05-policy-governance/README.md) | 규칙을 어긴 리소스 생성을 **자동으로 막으려면?** | 20분 |
 
@@ -32,7 +32,7 @@ flowchart LR
 
 1. **Azure 구독** – 없다면 [무료 계정](https://azure.microsoft.com/free/)(크레딧 제공)을 만드세요.
    - 구독에서 **Owner**(또는 Contributor + User Access Administrator) 권한이 필요합니다. 실습 4·5는 역할 할당/정책 할당을 하므로 *회사 구독이 아닌 개인 실습용 구독*을 권장합니다.
-   - 실습 2·3은 스토리지/Key Vault의 공용 접근을 사용합니다. 공용 네트워크 또는 스토리지 키 인증을 강제로 차단하는 조직 정책이 있으면 끝까지 수행할 수 없습니다. 정책을 우회하지 말고, 해당 제한이 없는 실습용 구독을 사용하세요.
+   - 실습 2·3은 **공용 접근·스토리지 키 인증을 끈 상태**에서 관리 ID와 Private Endpoint를 사용합니다. 이 제한을 강제하는 관리형 구독에서도 실습할 수 있습니다. 다만 VNet/Private Endpoint 생성과 App Service B1 사용은 허용되어야 합니다. 정책을 해제하거나 우회하지 않습니다.
 2. **GitHub 계정** (Codespaces 사용)
 
 ## 🚀 시작하기
@@ -56,7 +56,8 @@ flowchart LR
 
 ## 💸 비용과 정리
 
-- 기본 설정은 **무료/종량제 위주**입니다: App Service `F1`(무료), Functions Flex Consumption(호출량 기반), Key Vault(요청당 과금), Policy/RBAC(무료).
+- 실습 1은 App Service `F1`(무료), 실습 2는 Functions Flex Consumption(호출량 기반)을 사용합니다.
+- **실습 3은 유료 B1으로 업그레이드**합니다 (`--allow-paid`로 명시적 동의). 실습 2·3의 **Private Endpoint도 시간당 과금**되며, Key Vault는 요청당 과금됩니다. Policy/RBAC는 무료입니다.
 - 실습 후에는 **반드시 정리**하세요. 한 번에 모두 삭제합니다.
 
   ```bash
@@ -70,7 +71,7 @@ flowchart LR
 
 ```text
 .devcontainer/      Codespaces 환경 (Python 3.12, Azure CLI, Functions Core Tools)
-scripts/            env.sh(공통 변수), 00-setup.sh(사전 점검), cleanup.sh(전체 삭제)
+scripts/            공통 변수·사전 점검·실습 2/3 자동 준비·전체 삭제
 src/webapp/         실습 1·3 샘플 Flask 웹앱
 src/function/       실습 2·3 샘플 Azure Functions (Python v2)
 labs/               실습 문서 (한국어 README.md / English README.en.md)
@@ -94,6 +95,7 @@ GitHub Actions에서도 같은 검사를 실행합니다. Azure 자격 증명이
 - **최소 권한**만 부여하고, 범위를 좁게 잡습니다 (실습 4).
 - 규칙은 사람의 기억이 아니라 **정책**으로 강제합니다 (실습 5).
 - 웹앱은 HTTPS 전용 / TLS 1.2 이상 / FTP 비활성으로 배포합니다 (실습 1).
+- 스토리지와 Key Vault는 공용 접근을 끄고, 스토리지 키 대신 관리 ID를 사용합니다. 네트워크 준비는 스크립트로 묶고 실습에서는 요청·신원·권한에 집중합니다 (실습 2·3).
 
 ## 📄 라이선스
 

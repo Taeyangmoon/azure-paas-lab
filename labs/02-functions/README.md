@@ -2,13 +2,14 @@
 
 [🇺🇸 English](README.en.md) | 🇰🇷 한국어 | [← 처음으로](../../README.md) | [← 실습 1](../01-app-service/README.md) | [다음: 실습 3 →](../03-key-vault/README.md)
 
-⏱ 20분 · 💸 거의 무료(호출 기반) · 🎯 **서버리스를 가장 짧은 코드로 체험합니다.**
+⏱ 20~30분 · 💸 호출 기반 + Private Endpoint 시간당 과금 · 🎯 **서버리스를 가장 짧은 코드로 체험합니다.**
 
 ## 개념 먼저
 
 - **서버리스**: 서버가 없는 게 아니라 *서버를 내가 신경 쓰지 않는* 것입니다. 요청이 오면 실행되고, 없으면 비용이 거의 들지 않습니다.
 - **트리거**: 함수를 깨우는 이벤트(HTTP 요청, 타이머, 큐 메시지 …). 이 실습은 **HTTP 트리거**입니다.
 - 이 실습은 **Flex Consumption** 요금제를 사용합니다. 사용량 기반이며 새 함수 앱에 권장되는 서버리스 호스팅입니다.
+- 스토리지는 **공용 접근과 키 인증을 끈 상태**로 사용합니다. 함수가 **관리 ID + Private Endpoint**로 접근하므로 현재 관리형 구독의 정책을 해제할 필요가 없습니다.
 
 | | App Service (실습 1) | Functions (실습 2) |
 |---|---|---|
@@ -44,53 +45,64 @@ curl -i "http://localhost:7071/api/hello"        # 400: name 누락
 
 확인 후 `Ctrl+C` 로 종료하고 `cd ../..` 로 루트에 돌아옵니다.
 
-## 2. Azure 리소스 만들기
+로컬 런타임은 기본적으로 함수 키를 검사하지 않습니다. 다음 Azure 단계에서 실제 401/200을 비교합니다.
+
+## 2. Azure 준비와 배포 — 명령 한 줄
+
+저장소 루트에서 실행합니다. 첫 네트워크 준비·배포는 몇 분 걸립니다.
 
 ```bash
-source scripts/env.sh
-az group create -n $RG -l $LOCATION --tags $LAB_TAG -o none
-
-# 함수 런타임이 상태를 저장하는 스토리지 계정
-az storage account create -g $RG -n $FUNC_STORAGE -l $LOCATION \
-  --sku Standard_LRS --allow-blob-public-access false --min-tls-version TLS1_2 -o none
-
-# 함수 앱 (Flex Consumption)
-az functionapp create -g $RG -n $FUNCAPP --storage-account $FUNC_STORAGE \
-  --flexconsumption-location $LOCATION --runtime python --runtime-version 3.12 -o none
+bash scripts/02-functions.sh
 ```
 
-> `koreacentral` 에서 Flex Consumption 을 지원하지 않는다는 오류가 나면 `az functionapp list-flexconsumption-locations -o table` 로 지원 지역을 확인하고 `export LOCATION=<지역>` 으로 바꾼 뒤, 스토리지 계정과 함수 앱을 그 지역에 만드세요(리소스 그룹은 기존 지역 그대로여도 됩니다).
+스크립트가 스토리지, 관리 ID, VNet/Private DNS/Private Endpoint, Flex 함수 앱을 만들고 Python 코드를 원격 빌드·배포합니다. Application Insights는 비용과 구성을 줄이기 위해 생략합니다.
 
-## 3. 배포
-
-```bash
-(cd src/function && func azure functionapp publish $FUNCAPP)
+```text
+내 요청 ── HTTPS + 함수 키 ──▶ Functions (Flex Consumption)
+                                  │ 관리 ID (스토리지 비밀번호 없음)
+                                  ▼ VNet + Private Endpoint
+                             비공개 Blob 스토리지
 ```
 
-완료 메시지에 함수 URL 목록이 표시됩니다.
+필수 이해는 두 가지입니다. **함수 키**는 *호출자 → 함수*를 보호하고, **관리 ID + RBAC**는 *함수 → 스토리지*를 보호합니다. `Storage Blob Data Owner`는 함수 호스트의 상태·키·배포 패키지 관리를 위해 **이 스토리지 계정 범위에만** 부여합니다.
 
-## 4. 호출해 보기: 함수 키
+코드를 수정한 뒤 같은 명령을 다시 실행하면 재배포됩니다. 이름·네트워크는 재사용합니다.
+
+## 3. 호출해 보기: 함수 키
 
 이 함수는 `AuthLevel.FUNCTION` 입니다. **키 없이는 호출할 수 없습니다.** 첫 번째 보안 개념입니다.
 
 ```bash
-HOST=$(az functionapp show -g $RG -n $FUNCAPP --query defaultHostName -o tsv)
+source scripts/env.sh
+HOST=$(az functionapp show -g $RG -n $FUNCAPP --query "properties.defaultHostName || defaultHostName" -o tsv)
 
 # 키 없이 → 401 Unauthorized
 curl -i "https://$HOST/api/hello?name=Azure"
 
 # 키와 함께 → 200 OK
 KEY=$(az functionapp keys list -g $RG -n $FUNCAPP --query functionKeys.default -o tsv)
-curl "https://$HOST/api/hello?name=Azure" -H "x-functions-key: $KEY"
+curl -i "https://$HOST/api/hello?name=Azure" -H "x-functions-key: $KEY"
+
+# JSON 본문도 가능 → 200; name이 없거나 문자열이 아니면 → 400
+curl -i "https://$HOST/api/hello" -H "x-functions-key: $KEY" \
+  -H "Content-Type: application/json" --data '{"name":"Azure"}'
+unset KEY
 ```
 
 > 🔐 키는 URL(`?code=`)보다 **헤더**로 보내는 편이 로그에 덜 남습니다. 그리고 키는 *약한 보호 수단*입니다. 실제 서비스에서는 Microsoft Entra 인증(Easy Auth)을 함께 고려하세요.
 
-## 5. 서버리스 체감하기
+## 4. 정책을 지킨 상태 확인
+
+```bash
+az storage account show -g $RG -n $FUNC_STORAGE \
+  --query '{publicNetworkAccess:publicNetworkAccess,allowSharedKeyAccess:allowSharedKeyAccess}' -o json
+az functionapp show -g $RG -n $FUNCAPP --query "properties.virtualNetworkSubnetId || virtualNetworkSubnetId" -o tsv
+```
+
+`Disabled`, `false`, 그리고 서브넷 ID가 나오면 정상입니다. **공용 스토리지나 스토리지 키 없이도 함수가 실제로 동작**한 것입니다.
 
 - **Cold start:** 한동안 호출하지 않다가 호출하면 첫 응답이 조금 느립니다. `time curl ...` 로 비교해 보세요.
-- **로그 보기:** Azure 포털 → 함수 앱 → **로그 스트림**
-- **비용:** 포털 → 함수 앱 → *Monitoring* 에서 실행 횟수를 확인해 보세요. 호출이 없으면 실행 비용도 없습니다.
+- **비용:** 함수 실행은 호출 기반이지만 **Private Endpoint는 호출이 없어도 시간당 과금**됩니다. 실습이 끝나면 전체 정리하세요.
 
 ## ❓ 점검 퀴즈
 
@@ -103,9 +115,10 @@ curl "https://$HOST/api/hello?name=Azure" -H "x-functions-key: $KEY"
 | 증상 | 해결 |
 |------|------|
 | `func: command not found` | Codespace 를 재빌드(`Rebuild Container`)하거나 `.devcontainer` 를 확인 |
-| 배포 직후 401/404 | 1~2분 기다린 뒤 다시 시도. `func azure functionapp publish` 출력에 함수 목록이 있는지 확인 |
+| 배포 직후 404/503 또는 빈 함수 키 | 호스트 기동·RBAC/DNS 전파에 1~2분이 걸릴 수 있습니다. 잠시 후 키 조회와 호출을 재시도 |
 | `functionKeys.default` 가 비어 있음 | 함수 호스트가 아직 시작 전입니다. 1~2분 후 재시도하거나 포털 *앱 키* 에서 확인 |
-| `storage account ... has networking restrictions` (함수 앱 생성) 또는 `Key based authentication is not permitted` (배포) | 조직 정책이 스토리지의 공용 네트워크 접근/키 인증을 강제로 꺼 둔 구독입니다(예: 회사 관리형 구독). 이 실습은 해당 정책이 없는 **개인 실습용 구독**에서 진행하세요 |
+| `Key based authentication is not permitted` | 예전 수동 생성 명령 대신 `bash scripts/02-functions.sh`를 사용하세요. 공용 접근/키 인증을 켜지 않습니다 |
+| 지원하지 않는 지역 | 시작 전에 `az functionapp list-flexconsumption-locations -o table`로 확인. 지역 변경은 기존 랩을 정리한 뒤 모든 실습을 같은 지역에서 다시 시작 |
 | 스토리지 계정 이름 중복 | `rm .lab-env && source scripts/env.sh` 로 새 접미사 생성 (기존 리소스 정리 후) |
 
 ➡️ 다음: [실습 3. Key Vault + 관리 ID](../03-key-vault/README.md)

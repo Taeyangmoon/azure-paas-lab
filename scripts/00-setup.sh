@@ -14,7 +14,7 @@ az account show --query "{name:name, id:id, tenant:tenantId, user:user.name}" -o
 
 echo
 echo "⏳ 리소스 공급자 등록 중 (처음 한 번만 오래 걸립니다) / Registering providers (slow only the first time)..."
-for ns in Microsoft.Web Microsoft.KeyVault Microsoft.Storage Microsoft.PolicyInsights Microsoft.OperationalInsights Microsoft.App; do
+for ns in Microsoft.Web Microsoft.KeyVault Microsoft.Storage Microsoft.Network Microsoft.PolicyInsights Microsoft.OperationalInsights Microsoft.App; do
   state=$(az provider show --namespace "$ns" --query registrationState -o tsv 2>/dev/null || echo "NotRegistered")
   if [ "$state" != "Registered" ]; then
     echo "   - $ns ($state) -> register"
